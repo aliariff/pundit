@@ -66,7 +66,7 @@ module Pundit
       abilities = role.new(user, record).public_send('abilities')
       related_abilities = []
       abilities.each do |ability|
-        related_abilities << ability if ability.to_s.include? klass.to_s
+        related_abilities << ability if ability.to_s.include? klass.name
       end
       related_abilities
     end
@@ -123,7 +123,7 @@ module Pundit
 
     @_pundit_policy_authorized = true
 
-    puts "-> " + PolicyFinder.new(record).policy!.to_s + " " + query
+    puts "-> " + PolicyFinder.new(record).policy!.name + " " + query
     policy = policy(record)
     result = false
     policy.each do |i|
