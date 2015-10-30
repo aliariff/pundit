@@ -120,10 +120,10 @@ module Pundit
 
   def authorize(record, query=nil)
     query ||= params[:action].to_s
-
+    query = query.to_s.gsub('?', '') if query.present?
     @_pundit_policy_authorized = true
 
-    puts "-> " + PolicyFinder.new(record).policy!.name + " " + query
+    puts "-> #{PolicyFinder.new(record).policy!} #{query}"
     policy = policy(record)
     result = false
     policy.each do |i|
