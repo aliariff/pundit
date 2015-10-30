@@ -60,14 +60,13 @@ module Pundit
 
     def policy!(user, record)
       klass = PolicyFinder.new(record).policy!
-      role = "#{user.administrator}"
-      role = role.camelcase
-      role = role + SUFFIX
+      role = user.present? ? "#{user.administrator}" : 'guest'
+      role = role.camelcase + SUFFIX
       role = role.constantize
       abilities = role.new(user, record).public_send('abilities')
       related_abilities = []
       abilities.each do |ability|
-        related_abilities << ability.constantize.new(user, record) if ability.to_s.include? klass.to_s
+        related_abilities << ability if ability.to_s.include? klass.to_s
       end
       related_abilities
     end
@@ -120,14 +119,15 @@ module Pundit
   end
 
   def authorize(record, query=nil)
-    query ||= params[:action].to_s + "?"
+    query ||= params[:action].to_s
 
     @_pundit_policy_authorized = true
 
+    puts "-> " + PolicyFinder.new(record).policy!.to_s + " " + query
     policy = policy(record)
     result = false
     policy.each do |i|
-      result ||= i.public_send(query)
+      result ||= $abilities[i.to_s].include? query if $abilities[i.to_s].present?
     end
     unless result
       raise NotAuthorizedError.new(query: query, record: record, policy: policy)
@@ -170,7 +170,7 @@ module Pundit
     current_user
   end
 
-private
+  private
 
   def pundit_policy_scope(scope)
     policy_scopes[scope] ||= Pundit.policy_scope!(pundit_user, scope)
